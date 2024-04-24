@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSnackBae } from "../context/SnackBae";
 import { useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
 
 //components
 import MerchantNavbar from "../component/MerchantNavbar";
@@ -16,7 +17,7 @@ import MerchantShare from "../component/MerchantShare";
 import { MdOutlineShare } from "react-icons/md";
 import { FaAnglesRight } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
-import { FaAngleDown } from "react-icons/fa6";
+import { FaAngleDown, FaAngleUp } from "react-icons/fa6";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { IoClose } from "react-icons/io5";
 import { FaEdit } from "react-icons/fa";
@@ -29,6 +30,7 @@ import groupImage from "../assets/groupImage.png";
 import eventnofound from "../assets/eventnofound.png";
 import Restaurantmenu from "../assets/Restaurantmenu.png";
 import termsImage from "../assets/termsImage.png";
+import foodos from '../assets/foodos.png';
 
 // otp
 import { auth } from "../firebase.config";
@@ -56,6 +58,7 @@ const MerchantProfile = () => {
     restaurentdata,
     setRestaurentData,
     menuId,
+    User
   } = useSnackBae();
 
   const { id } = useParams();
@@ -64,6 +67,7 @@ const MerchantProfile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    forRecommendation();
     let config = {
       method: "get",
       maxBodyLength: Infinity,
@@ -101,12 +105,6 @@ const MerchantProfile = () => {
       });
   }, [recommend]);
 
-  //searchbar
-  const [search, setSearch] = useState("");
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    console.log(search);
-  };
 
   const handleRecommand = async () => {
     const userId = JSON.parse(localStorage.getItem("user"))._id;
@@ -146,7 +144,10 @@ const MerchantProfile = () => {
     const element = document.getElementById(id);
 
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      element.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -180,8 +181,10 @@ const MerchantProfile = () => {
       setUser(confirmation);
       setOpenPhno(false);
       setOpenOtp(true);
+      toast.success('Successfully Read!');
     } catch (err) {
       console.log(err);
+      toast.error(err);
     }
   };
 
@@ -222,23 +225,27 @@ const MerchantProfile = () => {
         .request(config)
         .then((response) => {
           console.log(JSON.stringify(response.data));
-          if (response.data.length != 0) {
+          if (response.data.data != null && response.data.data.length != 0) {
             // if user exists
             console.log("inside if user exists");
 
             localStorage.setItem("user", JSON.stringify(response.data.data));
             setOpenPhno(false);
             setOpenOtp(false);
-            setOpenProfile(true);
+            setOpenProfile(false);
+            setLogin(false);
+            toast.success('loggedIn successfully!');
             navigate(`/profile/merchant/${id}`);
           } else {
-            setLogin(false);
             setOpenPhno(false);
             setOpenOtp(false);
+            setOpenProfile(true);
+            toast.success('otp successfully');
           }
         })
         .catch((error) => {
           console.log(error);
+          toast.error(err);
         });
     } catch (e) {
       console.log(e);
@@ -276,25 +283,52 @@ const MerchantProfile = () => {
         type === "checkbox" ? checked : type === "file" ? files[0] : value,
     }));
   };
-  const handleImagePreview = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = async (pics) => {
+    console.log(pics);
+    const formData = new FormData();
+    formData.append("file", pics);
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileData((prevProfileData) => ({
-          ...prevProfileData,
-          profileImage: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:4000/api/fileUpload",
+      // headers: {
+      //   ...data.getHeaders(),
+      // },
+      data: formData,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+        console.log(response.data.data.url);
+        profileData.profileImage = response.data.data.url;
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
+
+  // const handleImagePreview = (e) => {
+  //   const file = e.target.files[0];
+
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setProfileData((prevProfileData) => ({
+  //         ...prevProfileData,
+  //         profileImage: reader.result,
+  //       }));
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
   const handleSubmitProfile = async (e) => {
     e.preventDefault();
     console.log("Profile data :", profileData);
-
+    profileData.contact = phoneNumber;
     const data = JSON.stringify(profileData);
     let config = {
       method: "post",
@@ -310,14 +344,17 @@ const MerchantProfile = () => {
       .request(config)
       .then((response) => {
         console.log(JSON.stringify(response.data));
-        localStorage.setItem("user", JSON.stringify(response.data.data));
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         setLogin(false);
         setOpenProfile(false);
-        navigate(`/profile/merchant/${id}`);
+        toast.success('SignUp Successfully!');
+        // navigate(`/profile/merchant/${id}`);
+
       })
       .catch((error) => {
         console.log(error);
       });
+    window.location.reload();
   };
 
   //payment
@@ -327,6 +364,22 @@ const MerchantProfile = () => {
 
 
   //search bar
+  const [search, setSearch] = useState("");
+  const [searchMenuItems, setSearchMenuItems] = useState();
+
+  const handleSearch = (e) => {
+    const inputValue = e.target.value;
+    setSearch(inputValue);
+    if (!inputValue) {
+      // If input value is empty or length is less than or equal to 1, clear search menu items
+      setSearchMenuItems();
+      return;
+    }
+
+    setSearch(inputValue);
+    searchMenu();
+  };
+
   const searchMenu = async (req, res) => {
     let config = {
       method: 'get',
@@ -337,7 +390,9 @@ const MerchantProfile = () => {
 
     axios.request(config)
       .then((response) => {
-        console.log(JSON.stringify(response.data));
+        // console.log(JSON.stringify(response.data));
+        console.log((response.data.menuItems));
+        setSearchMenuItems(response.data.menuItems);
       })
       .catch((error) => {
         console.log(error);
@@ -345,6 +400,7 @@ const MerchantProfile = () => {
   }
 
   //get all menu items for recommendation
+  const [mostRecomended, setMostRecomended] = useState();
   const forRecommendation = async (req, res) => {
 
     let config = {
@@ -356,12 +412,30 @@ const MerchantProfile = () => {
 
     axios.request(config)
       .then((response) => {
-        console.log(JSON.stringify(response.data));
+        // console.log((response.data));
+        setMostRecomended(response.data);
       })
       .catch((error) => {
         console.log(error);
       });
   }
+
+
+  // toggle data for more than 4
+  const [showAllCategories, setShowAllCategories] = useState({});
+
+  const toggleCategory = (categoryId) => {
+    setShowAllCategories(prevState => ({
+      ...prevState,
+      [categoryId]: !prevState[categoryId]
+    }));
+  };
+
+  const [showAllMostRecommended, setShowAllMostRecommended] = useState(false);
+
+  const toggleMostRecommended = () => {
+    setShowAllMostRecommended(prevState => !prevState);
+  };
 
   return (
     <div className="w-full h-fit">
@@ -478,11 +552,10 @@ const MerchantProfile = () => {
                     id="profileImage"
                     name="profileImage"
                     accept="image/*"
-                    required
                     className="absolute inset-0 opacity-0"
                     onChange={(e) => {
-                      handleChangeProfile(e);
-                      handleImagePreview(e);
+                      if (e.target.files)
+                        handleImageChange(e.target.files[0]);
                     }}
                   />
                 </label>
@@ -628,9 +701,9 @@ const MerchantProfile = () => {
           <div className="sm:w-[70%] flex flex-col gap-[1.3rem]">
             <div className=" flex items-center  justify-evenly sm:justify-start">
               <img
-                src={restaurentdata?.image}
+                src={restaurentdata?.image || foodos}
                 alt="logo"
-                className="w-[50px] md:w-[150px] aspect-square object-cover mix-blend-multiply rounded-full mr-[.2rem] "
+                className="w-[50px] md:w-[120px] aspect-square object-cover mix-blend-multiply rounded-full mr-[.3rem] "
               />
               <div>
                 <p className="font-Roboto font-[600] text-[1.2rem] leading-[1.2rem] md:text-[2.4rem] md:leading-[2.4rem]">
@@ -697,7 +770,7 @@ const MerchantProfile = () => {
         </div>
       </div>
 
-      <div className=" sticky top-0 pt-[3rem] w-[95%] md:w-[80%] mx-auto bg-white z-[100] ">
+      <div className=" sticky top-0 pt-[2rem] w-[95%] md:w-[80%] mx-auto bg-white z-[100] ">
         <div className=" relative  ">
           <div className="flex border-b-[2px] gap-[1.5rem]  px-[1rem]">
             <button
@@ -741,34 +814,37 @@ const MerchantProfile = () => {
             </button>
           </div>
 
-          <div className=" flex flex-wrap  gap-[.5rem] justify-between items-center py-[2rem] overflow-hidden border-b-2">
-            <div className="relative w-fit  shadow-xl rounded-md border-2 ">
-              <input
-                className=" w-[250px] sm:w-[400px] focus:outline-none h-[3rem] px-[1rem]"
-                type="text"
-                placeholder="Search for dish"
-                value={search}
-                onChange={handleSearch}
-              />
-              <CiSearch className=" absolute right-[1rem] top-[50%] translate-y-[-50%] text-[1.3rem]" />
-            </div>
-            <div className="flex gap-[1rem] items-center w-fit">
-              <div className="p-[.5rem] rounded-md border-2 flex items-center justify-start w-fit h-fit ">
-                <div
-                  className={`${isOn ? "bg-[#67CE67]" : "bg-[#ED4F4F]"
-                    } rounded-full w-[10px] aspect-square`}
-                ></div>
+          {
+            menus &&
+            <div className=" flex flex-wrap  gap-[.5rem] justify-between items-center py-[1.5rem] sm:py-[2rem] overflow-hidden border-b-2">
+              <div className="relative w-fit  shadow-xl rounded-md border-2 ">
+                <input
+                  className=" w-[250px] sm:w-[400px] focus:outline-none h-[2.4rem] sm:h-[3rem] px-[1rem]"
+                  type="text"
+                  placeholder="Search for dish"
+                  value={search}
+                  onChange={handleSearch}
+                />
+                <CiSearch className=" absolute right-[1rem] top-[50%] translate-y-[-50%] text-[1.3rem]" />
               </div>
-              <ToggleSwitch />
+              <div className="flex gap-[1rem] items-center w-fit">
+                <div className="p-[.5rem] rounded-md border-2 flex items-center justify-start w-fit h-fit ">
+                  <div
+                    className={`${isOn ? "bg-[#67CE67]" : "bg-[#ED4F4F]"
+                      } rounded-full w-[10px] aspect-square`}
+                  ></div>
+                </div>
+                <ToggleSwitch />
+              </div>
             </div>
-          </div>
+          }
         </div>
       </div>
 
       {/* menufilter */}
       <div
-        className={`${filter ? "max-w-[260px]" : "hidden"
-          }  bg-white shadow-lg py-[1rem] px-[1.5rem] rounded-md text-center fixed bottom-[5rem] left-[50%] translate-x-[-50%] z-[100]`}
+        className={`${filter ? "max-w-[280px]" : "hidden"
+          }  bg-white shadow-lg py-[1rem] px-[1.5rem] rounded-md text-center fixed bottom-[5rem] left-[50%] translate-x-[-50%] z-[100] h-fit`}
       >
         <div className="text-[#5E5E5E] font-inter font-[700] text-[1.1rem] sm:text-[1.2rem] flex justify-around items-center border-b-2 py-[.5rem] gap-[1rem] ">
           <p>Browse Menu</p>
@@ -779,19 +855,24 @@ const MerchantProfile = () => {
             className="text-[2rem] cursor-pointer"
           />
         </div>
-        {restaurentdata?.category.map((category, index) => (
-          <div key={index}>
-            <p className="py-[.5rem] font-inter font-[400] sm:text-[1.1rem] cursor-pointer">
-              {category?.name}
-            </p>
-          </div>
-        ))}
+        <div className=" overflow-y-scroll h-[28.5vh] hideScroller">
+          {restaurentdata?.category.map((category, index) => (
+            <div key={index} className="">
+              <p onClick={() => {
+                scrollToElement(category?.name);
+                setFilter(!filter);
+              }} className="py-[.6rem] font-inter font-[400] sm:text-[1.1rem] cursor-pointer">
+                {category?.name}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* menucomment */}
       <div>
-        {menuId &&
-          <Menucomment />
+        {User && <Menucomment />
+
         }
       </div>
 
@@ -817,7 +898,7 @@ const MerchantProfile = () => {
           <div className="w-full h-fit mt-[2rem]">
             {/* logo-image */}
             <img
-              src={restaurentdata?.image}
+              src={restaurentdata?.image || foodos}
               alt="merchant-logo"
               className="w-[100px] aspect-square rounded-full mx-auto"
             />
@@ -855,11 +936,27 @@ const MerchantProfile = () => {
 
             {/* offers */}
 
-            <div className={` flex gap-[1rem] overflow-x-scroll hideScroller`}>
-              {restaurantOffers.map((offer, index) => (
-                <MerchantOffers key={index} offer={offer} />
-              ))}
-            </div>
+            {restaurantOffers?.length == 0 ? (
+              <div className="w-full flex flex-col items-center p-[1rem] ">
+                <img
+                  src={eventnofound}
+                  alt="eventnofound"
+                  className="w-[40%] aspect-auto"
+                />
+                <p className=" font-Sen font-[700] text-[1.4rem]  leading-[3rem] text-center">
+                  Opps ! no offers found
+                </p>
+                <p className=" font-Sen font-[400]  leading-[1rem] text-[#525C67] text-center">
+                  Restaurant dont have any active offers
+                </p>
+              </div>
+            ) : (
+              <div className={` flex gap-[1rem] overflow-x-scroll hideScroller`}>
+                {restaurantOffers.map((offer, index) => (
+                  <MerchantOffers key={index} offer={offer} />
+                ))}
+              </div>
+            )}
 
             {/* payment */}
 
@@ -967,21 +1064,86 @@ const MerchantProfile = () => {
       {/* menu */}
       {menus && (
         <div>
-          {/* Restaurantmenu */}
-          {restaurentdata?.category.map((category) => (
+          {/* browse button */}
+          <button
+            onClick={() => {
+              setFilter(!filter);
+            }}
+            className='px-[1rem] py-[.5rem] bg-[#FFD628] flex justify-around gap-[.5rem] items-center rounded-lg fixed bottom-[2rem] left-[50%] translate-x-[-50%] z-[100]'>
+            <img src={Restaurantmenu} alt="Restaurantmenu" />
+            <p className='font-inter font-[400] text-[1rem] leading-[1.5rem]'>Browse Menu</p>
+          </button>
+
+          {/* searchMenuItems */}
+          {
+            searchMenuItems &&
             <div className="w-[95%] md:w-[80%] mx-auto">
-              {/* Most Recomended */}
-              <div id={category?.name} className="w-full h-fit py-[1rem]">
-                <div className="w-full flex justify-between items-center my-[1rem]">
+              <p className="font-Roboto font-[500] text-[1.4rem] leading-[3rem]">Search Results</p>
+              <div className="flex flex-wrap items-center justify-center gap-[.5rem]">
+                {searchMenuItems.map(
+                  (items, index) => (
+                    isOn ? (
+                      items.veg === "Yes" &&
+                      <MenuCard key={index} items={items} />
+                    ) : (<MenuCard key={index} items={items} />)
+                  )
+                )}
+              </div>
+            </div>
+          }
+          {/* mostRecomended */}
+          {
+            <div className="w-[95%] md:w-[80%] mx-auto">
+              <div id="mostRecomended" className="w-full flex justify-between items-center my-[1rem] shadow-lg p-[.5rem] px-[1rem] rounded-md">
+                <p className="font-Roboto font-[500] text-[1.4rem] leading-[3rem]">
+                  Most Recommended
+                </p>
+                {showAllMostRecommended ? (
+                  <FaAngleUp className={`text-[1.4rem] cursor-pointer`} onClick={toggleMostRecommended} />
+                ) : (
+                  <FaAngleDown className={`text-[1.4rem] cursor-pointer`} onClick={toggleMostRecommended} />
+                )}
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-[.5rem]">
+                {mostRecomended?.slice(0, showAllMostRecommended ? mostRecomended.length : 4).map(
+                  (items, index) => (
+                    isOn ? (
+                      items.veg === "Yes" &&
+                      <MenuCard key={index} items={items} />
+                    ) : (<MenuCard key={index} items={items} />)
+                  )
+                )}
+              </div>
+            </div>
+          }
+
+          {/*Rest Restaurantmenu */}
+          {restaurentdata?.category.map((category, index) => (
+            <div id={category?.name} key={index} className="w-[95%] md:w-[80%] mx-auto">
+              <div className="w-full h-fit py-[1rem]">
+                <div className="w-full flex justify-between items-center my-[1rem] shadow-lg p-[.5rem] px-[1rem] rounded-md">
                   <p className="font-Roboto font-[500] text-[1.4rem] leading-[3rem]">
                     {category?.name}
                   </p>
-                  <FaAngleDown className={`text-[1.4rem]`} />
+                  {showAllCategories[category?.name] ? (
+                    <FaAngleUp
+                      className={`text-[1.4rem] cursor-pointer`}
+                      onClick={() => toggleCategory(category?.name)}
+                    />
+                  ) : (
+                    <FaAngleDown
+                      className={`text-[1.4rem] cursor-pointer`}
+                      onClick={() => toggleCategory(category?.name)}
+                    />
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-[.5rem]">
-                  {category?.menuItems.map(
+                  {category?.menuItems.slice(0, showAllCategories[category?.name] ? category.menuItems.length : 4).map(
                     (items, index) => (
-                      <MenuCard key={index} items={items} />
+                      isOn ? (
+                        items.veg === "Yes" &&
+                        <MenuCard key={index} items={items} />
+                      ) : (<MenuCard key={index} items={items} />)
                     )
                   )}
                 </div>

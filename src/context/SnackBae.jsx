@@ -9,7 +9,7 @@ export const useSnackBae = () => {
 };
 
 export const SnackBaeProvider = (props) => {
-  const [user, setUser] = useState(false); // it help in store data of user after fetch
+  const [User, setUser] = useState(false); // it help in store data of user after fetch
   const [login, setLogin] = useState(false); //open login for user when it not logged in
   const [allBlogs, setAllBlogs] = useState("");
   const [loader, setLoader] = useState(false);
@@ -23,6 +23,12 @@ export const SnackBaeProvider = (props) => {
 
   useEffect(() => {
     setLoader(true);
+    const storedUser = localStorage.getItem('user');
+    
+    // Update state if user data is found
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
     getAllData();
     setTimeout(() => {
       setLoader(false);
@@ -57,7 +63,7 @@ export const SnackBaeProvider = (props) => {
         setAllBlogs,
         commentVisible,
         setCommentVisible,
-        user,
+        User,
         setUser,
         login,
         setLogin,

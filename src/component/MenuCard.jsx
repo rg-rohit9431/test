@@ -8,17 +8,19 @@ import good from '../assets/good.png'
 import musttry from '../assets/musttry.png';
 
 const MenuCard = ({items}) => {
-    const {commentVisible,setCommentVisible,menuId, setMenuId } = useSnackBae();
+    const {commentVisible,setCommentVisible,menuId, setMenuId ,setLogin,User } = useSnackBae();
     useEffect(()=>{
-    console.log(items);
+    // console.log(items);
     },[]);
 
     // console.log({items?.name})
     return (
       <div
         onClick={() => {
-          setCommentVisible(!commentVisible);
+          User ? setCommentVisible(!commentVisible) :  setLogin(true);
+          
           setMenuId(items._id);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         className="w-[170px] sm:w-[260px] h-fit p-[1rem] shadow-xl rounded-md cursor-pointer"
       >
@@ -26,13 +28,13 @@ const MenuCard = ({items}) => {
           <img
             src={items?.image}
             alt="image-menu"
-            className="w-full aspect-auto object-contain"
+            className="h-[150px] aspect-auto object-contain mx-auto"
           />
-          <div className="p-[.5rem] rounded-md flex items-center justify-start w-fit h-fit absolute top-[.3rem] sm:top-[1rem] left-[.3rem] sm:left-[1rem]  bg-white">
+          <div className="p-[.5rem] rounded-md flex items-center justify-start w-fit h-fit absolute top-[.3rem] sm:top-[1rem] left-[.3rem] sm:left-[1rem]  bg-white border-2">
             <div
               className={`${
                 items.veg === "Yes" ? "bg-[#67CE67]" : "bg-[#ED4F4F]"
-              } rounded-full w-[10px] aspect-square`}
+              } rounded-full w-[10px] aspect-square `}
             ></div>
           </div>
           <p className="w-fit px-[.5rem] rounded-xl bg-[#FFD628] font-[500] sm:text-[1.2rem] absolute bottom-[.3rem] sm:bottom-[1rem] right-[.3rem] sm:right-[1rem] ">
@@ -40,7 +42,7 @@ const MenuCard = ({items}) => {
           </p>
         </div>
         <div>
-          <p className="font-Roboto font-[500] sm:text-[1.2rem] my-[.5rem] text-center">
+          <p className="font-Roboto font-[500] sm:text-[1.2rem] my-[.5rem] text-center text-nowrap text-ellipsis overflow-hidden">
             {items?.name}
           </p>
           <div className="w-full flex justify-evenly ">

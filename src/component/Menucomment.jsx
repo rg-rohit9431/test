@@ -79,25 +79,25 @@ const Menucomment = () => {
     const calculateTimeDifference = (fateDate) => {
         // Convert fate date to Date object
         const fateDateTime = new Date(fateDate);
-    
+
         // Current date
         const currentDate = new Date();
-    
+
         // Calculate time difference in milliseconds
         const timeDifference = currentDate.getTime() - fateDateTime.getTime();
-    
+
         // Convert milliseconds to days, weeks, or months
         const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
         const weeksDifference = Math.floor(daysDifference / 7);
         const monthsDifference = Math.floor(daysDifference / 30);
-    
+
         // Determine appropriate label based on time difference
         if (monthsDifference >= 1) {
             return `${monthsDifference} month${monthsDifference > 1 ? 's' : ''} ago`;
         } else if (weeksDifference >= 1) {
             return `${weeksDifference} week${weeksDifference > 1 ? 's' : ''} ago`;
         } else {
-            if(daysDifference == 0)
+            if (daysDifference == 0)
                 return "Today"
             else
                 return `${daysDifference} day${daysDifference > 1 ? 's' : ''} ago`;
@@ -162,7 +162,7 @@ const Menucomment = () => {
                     url: `http://localhost:4000/api/getMenuById/${menuId}`,
                     headers: {}
                 };
-        
+
                 axios.request(config)
                     .then((response) => {
                         console.log(JSON.stringify(response.data));
@@ -176,9 +176,10 @@ const Menucomment = () => {
             .catch((error) => {
                 console.log(error);
             });
+            setComment('')
     }
     //input range
-    const [value, setValue] = useState(0);
+    const [value, setValue] = useState(4);
 
     const handleInputChange = (event) => {
         setValue(parseInt(event.target.value));
@@ -258,16 +259,16 @@ const Menucomment = () => {
                         }}
                         className='text-[2rem] cursor-pointer fixed right-[1rem] top-[1rem] text-[#426CFF]' />
                 </div>
-                <img src={menuData?.menu?.image} alt="commentImage" className='w-full aspect-auto object-contain' />
+                <img src={menuData?.menu?.image} alt="commentImage" className='h-[180px] aspect-auto object-contain mx-auto mt-[1rem]' />
 
                 <p className='font-Roboto font-[500] sm:text-[1.2rem] my-[.5rem] text-center'>{menuData?.menu?.name}</p>
 
                 <div className='flex gap-[1rem] items-center my-[.5rem] px-[20px]'>
                     <div className='p-[.5rem] rounded-md flex items-center justify-start w-fit h-fit border-2  bg-white'>
-                        {menuData?.menu?.veg == "false" &&
+                        {menuData?.menu?.veg !== "Yes" &&
                             <div className='bg-[#ED4F4F] rounded-full w-[10px] aspect-square'></div>
                         }
-                        {menuData?.menu?.veg == "true" &&
+                        {menuData?.menu?.veg == "Yes" &&
                             <div className='bg-[#2eae4e] rounded-full w-[10px] aspect-square'></div>
                         }
                     </div>
@@ -371,38 +372,38 @@ const Menucomment = () => {
                 </div>
 
                 <div>
-                {menuData?.menu?.comments.map((comment) => (
-                    <div className=' relative w-[80%] mx-auto h-fit border-2 p-[1rem] my-[1rem] rounded-3xl shadow-xl'>
-                    <div className='w-full flex justify-evenly items-center'>
-                        <img src={comment?.userId?.profileImage} alt="dummyimage" />
-                        <p className='font-inter font-[500] text-[#334253]'>{comment?.userId?.name}</p>
-                        <p className='font-inter font-[400] text-[#67727E]'>{calculateTimeDifference(comment?.createdAt)}</p>
-                    </div>
-                    <p className='font-inter font-[400] text-[#67727E] p-[1rem] pb-[3rem]'>{comment?.description}</p>
-                    <div >
-                        {comment?.rated=="mustTry" &&
-                            <div className='w-fit h-fit mt-[.5rem] flex flex-col items-center absolute right-[1rem] bottom-[1rem]'>
-                                <img src={musttry} alt="musttry" className='w-[20px] aspect-square' />
-                                <p className='font-inter font-[400] mt-[3px]'>must try</p>
+                    {menuData?.menu?.comments.map((comment) => (
+                        <div className=' relative w-[80%] mx-auto h-fit border-2 p-[1rem] my-[1rem] rounded-3xl shadow-xl'>
+                            <div className='w-full flex justify-evenly items-center'>
+                                <img src={comment?.userId?.profileImage} alt="dummyimage" className='w-[40px] aspect-square rounded-full ' />
+                                <p className='font-inter font-[500] text-[#334253]'>{comment?.userId?.name}</p>
+                                <p className='font-inter font-[400] text-[#67727E]'>{calculateTimeDifference(comment?.createdAt)}</p>
                             </div>
-                        }
-                        {comment?.rated=="liked" &&
-                            <div className='w-fit h-fit mt-[.5rem] flex flex-col items-center absolute right-[1rem] bottom-[1rem]'>
-                                <img src={good} alt="musttry" className='w-[20px] aspect-square' />
-                                <p className='font-inter font-[400] mt-[3px]'>Liked</p>
+                            <p className='font-inter font-[400] text-[#67727E] p-[1rem] pb-[3rem]'>{comment?.description}</p>
+                            <div >
+                                {comment?.rated == "mustTry" &&
+                                    <div className='w-fit h-fit mt-[.5rem] flex flex-col items-center absolute right-[1rem] bottom-[1rem]'>
+                                        <img src={musttry} alt="musttry" className='w-[20px] aspect-square' />
+                                        <p className='font-inter font-[400] mt-[3px]'>must try</p>
+                                    </div>
+                                }
+                                {comment?.rated == "liked" &&
+                                    <div className='w-fit h-fit mt-[.5rem] flex flex-col items-center absolute right-[1rem] bottom-[1rem]'>
+                                        <img src={good} alt="musttry" className='w-[20px] aspect-square' />
+                                        <p className='font-inter font-[400] mt-[3px]'>Liked</p>
+                                    </div>
+                                }
+                                {comment?.rated == "notLiked" &&
+                                    <div className='w-fit h-fit mt-[.5rem] flex flex-col items-center absolute right-[1rem] bottom-[1rem]'>
+                                        <img src={notliked} alt="musttry" className='w-[20px] aspect-square' />
+                                        <p className='font-inter font-[400] mt-[3px]'>Not liked</p>
+                                    </div>
+                                }
                             </div>
-                        }
-                        {comment?.rated=="notLiked" &&
-                            <div className='w-fit h-fit mt-[.5rem] flex flex-col items-center absolute right-[1rem] bottom-[1rem]'>
-                                <img src={notliked} alt="musttry" className='w-[20px] aspect-square' />
-                                <p className='font-inter font-[400] mt-[3px]'>Not liked</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-                ))
+                        </div>
+                    ))
 
-                }
+                    }
                 </div>
             </div>
         </div>
@@ -410,3 +411,5 @@ const Menucomment = () => {
 }
 
 export default Menucomment
+
+

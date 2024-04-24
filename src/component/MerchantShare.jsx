@@ -73,8 +73,8 @@ const MerchantShare = () => {
 
                 <p className='font-inter font-[400] leadin-[19.36px] text-[#363636] p-[1rem]'>Or copy link</p>
                 <div className='flex justify-between items-center py-[.5rem] px-[1rem] m-[1rem] mt-0 border-2 rounded-md bg-[#0000000D]'>
-                    <p className='text-nowrap'>{shareUrl}</p>
-                    <FaRegCopy onClick={copyUrl} className=' cursor-pointer' />
+                    <p className='text-nowrap overflow-hidden text-ellipsis'>{shareUrl}</p>
+                    <FaRegCopy onClick={copyUrl} className=' cursor-pointer text-[1.4rem] mx-[.1rem]' />
                 </div>
 
                 <div className='w-full h-fit py-[1rem] flex items-center'>
