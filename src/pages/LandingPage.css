@@ -1,0 +1,22 @@
+.scrollleftanimation{
+    animation: animateleft 40s linear infinite;
+}
+@keyframes animateleft{
+    0%{
+        transform: translateX(0);
+    }
+    100%{
+        transform: translateX(-50%);
+    }
+}
+.scrollrightanimation{
+    animation: animateright 40s linear infinite;
+}
+@keyframes animateright{
+    0%{
+        transform: translateX(-50%);
+    }
+    100%{
+        transform: translateX(0%);
+    }
+}

@@ -1,0 +1,15 @@
+.active{
+    color: #004AAD;
+}
+
+.hideScroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .comment {
+    transition: transform 0.5s, opacity 0.5s;
+    z-index: 200;
+    background-color: white;
+  }
+
+  
